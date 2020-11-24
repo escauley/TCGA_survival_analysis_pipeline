@@ -156,6 +156,99 @@ class organize:
 
         data_to_quote.to_csv('data/COAD/processed/COAD.csv', index=False)
 
+    def uncompress_tcga_hits(self, log_file, data_folder):
+
+        # Arguments
+        # ---------
+
+        # log_file: the list of studies downloaded as well as the number of samples per studied, generated from get_data_all_samples.py script.
+        # data folder: the absolute path to the top level folder for the data to be uncompressed.
+
+        # Returns
+        # -------
+
+        # None. Creates a folder with uncompressed sample files.
+
+        # Create a list of the study names to process.
+        study_list = []
+
+        with open(log_file, 'r') as fil:
+            # Go through each study and save the study name and number of samples.
+            for line in fil:
+                spl = line.split()
+
+                # Check that the log has four fields.
+                if len(spl) != 4:
+                    continue
+
+                # Save the project name.
+                proj_id = spl[0]
+
+                # Save the number of samples.
+                num_sam = int(spl[2])
+
+                # Add study and number of samples as key, value pairs to dictionary.
+                if not (proj_id in study_list):
+                    study_list.append(proj_id)
+
+        # Go through each study and decompress the files.
+        for proj_id in study_list:
+
+            #Set up the path to the project directory.
+            project_directory = data_folder + proj_id + '/Primary-Tumor/'
+
+            # Go to directory of each project.
+            os.chdir(project_directory)
+
+            # Make a list of sample ids from the manifest.
+            with open('MANIFEST.txt', 'r') as manifest:
+                # Create a list to hold the sample ids.
+                sample_list = []
+
+                # Skip the header.
+                next(manifest)
+
+                # Got through the manifest and record each sample id.
+                for line in manifest:
+
+                    # The sample ids are in the first column in the manifest file.
+                    manifest_spl = line.split()
+                    sample_id = manifest_spl[0]
+
+                    # Check if the sample id was already added to the list?
+                    if sample_id not in sample_list:
+                        sample_list.append(sample_id)
+                    else:
+                        continue
+
+            # Go into each sample directory.
+            for sample in sample_list:
+
+                print('processing sample: ' + sample)
+
+                # Set up the path to the sample directory.
+                sample_directory = data_folder + proj_id + '/Primary-Tumor/' + sample
+
+                # Go to the sample directory.
+                os.chdir(sample_directory)
+                
+                # Uncompress the data.
+                os.system('gunzip -k *.gz')
+
+                print('sample complete')
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
