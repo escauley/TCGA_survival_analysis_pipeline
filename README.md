@@ -17,9 +17,10 @@ Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to down
 
 ### Uncompress files
 
-Top level script: unpack_data.py
+#### Top level script: 
+unpack_data.py
 
-Options
+#### Options
 -h or --help 
   - Display the options on the command line. 
   
@@ -29,8 +30,13 @@ Options
 -d or --data_folder_path
   - The full path to the folder containing the read count files downloaded in the Download step
   
-Library Script: organize.py
+#### Library Script: 
+organize.py
 - Uses the function uncompress_tcga_hits
+
+#### Example command line usage: 
+
+python3 unpack_data.py -l logs/get_data_all_samples.log -d TCGA_data/normalized_read_counts/
 
 
 
