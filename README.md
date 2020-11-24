@@ -22,8 +22,10 @@ Top level script: unpack_data.py
 Options
 -h or --help 
   - Display the options on the command line. 
+  
 -l or --log_file_path
   - The full path to the log file generated in the Download step
+  
 -d or --data_folder_path
   - The full path to the folder containing the read count files downloaded in the Download step
   
