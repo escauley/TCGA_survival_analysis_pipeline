@@ -127,20 +127,20 @@ class organize:
 
         return transposed_data
 
-    def write_out(self, final_dataframe):
+    def write_out(self, final_dataframe, final_output_path):
 
         # Arguments
         # ---------
 
         # final_dataframe: the data frame to be written out.
-        # output_path: the path to write the csv output file.
+        # final_output_path: the path to write the csv output file.
 
         # Returns
         # -------
 
         # A csv file from the pandas dataframe.
 
-        final_dataframe.to_csv('data/COAD/processed/COAD.csv', index=False)
+        final_dataframe.to_csv(final_output_path, index=False)
 
     def quote_csv(self, data_to_quote, output_name):
 
@@ -236,6 +236,81 @@ class organize:
                 os.system('gunzip -k *.gz')
 
                 print('sample complete')
+
+    def combine_tcga_readcounts(self, uncombined_input_folder):
+
+        # Arguments
+        # ---------
+
+        # uncombined_input_folder: A full path to the directory that contains all the read count directories and filoes to combine.
+
+        # Returns
+        # -------
+
+        # A pandas dataframe with all of the read count files combined and fields to denote file id and submitter id.
+
+        # Designate the location of the files to be combined.
+        os.chdir(uncombined_input_folder)
+
+        # Set up a dictionary where keys are file ids and values are file names.
+        file_id_dict = {}
+
+        # Define the headers for the read count files and final master file.
+        column_names = ['ensg_transcript', 'FPKM', 'file_id', 'file_name']
+
+        # Set up the master dataframe with header.
+        master_df = pd.DataFrame(columns=column_names)
+
+        # Load the MANIFEST into a list.
+        with open('MANIFEST.txt', 'r') as manifest:
+
+            next(manifest)
+
+            for row in manifest:
+                split_row = row.split()
+
+                # Save the file_id (first column)
+                file_id = split_row[0]
+
+                # Save the file name (second column)
+                filename = split_row[1]
+
+                # Story the file id and file name into the dictionary.
+                file_id_dict[file_id] = filename
+
+
+        # Use the file id dictionary to edit and concatenate all read count files.
+        for key, value in file_id_dict.items():
+
+            # Load the read count file into a dataframe.
+            df = pd.read_csv(value, sep='\t', names=column_names)
+
+            # For all rows, make a constant value with the current file id and file name.
+            df['file_id'] = key
+            df['file_name'] = value
+
+            # Add the read count dataframe to the master dataframe.
+            master_df = master_df.append(df)
+
+        return master_df
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
