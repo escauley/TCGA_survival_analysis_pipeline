@@ -1,6 +1,7 @@
 # For manipulating file data.
 import pandas as pd
 import csv
+import json
 
 # For exiting the program.
 import sys
@@ -71,7 +72,7 @@ class organize:
         # Arguments
         # ---------
 
-        # unmapped_data: a data frame of the data to be processed.
+        # data: a data frame of the data to be processed.
 
         # master_list_location: the path to the masterlist to use for mapping.
 
@@ -293,6 +294,90 @@ class organize:
             master_df = master_df.append(df)
 
         return master_df
+
+    def map_tcga_clinical_data(self, metadata, master_csv, clinical_tsv):
+
+        # Arguments
+        # ---------
+
+        # metadata: the metadata file provided by TCGA.
+        # master_csv: The csv of combined TCGA read counts.
+
+        # Returns
+        # -------
+
+        # A pandas dataframe with clinical data from the metadata file mapped to every row.
+
+        # Load the master data csv into a pandas dataframe.
+        master_df = pd.read_csv(master_csv)
+
+        # Create a dictionary to hold the metadata information.
+        metadata_dict = {}
+
+        # Load the metadata json file and relevant clinical data into the dictionary.
+        with open(metadata) as f:
+            metadata_json = json.load(f)
+
+            # For each patient in the metadata file assign the file id to the case id in our dictionary.
+            for patient in metadata_json:
+                metadata_dict[patient['file_id']] = patient['associated_entities'][0]['case_id']
+
+        # Make a new column in the master df for the case id.
+        # master_df.insert(3, 'case_id', [], True)
+
+        # Map the metadata dictionary to the master dataframe.
+        master_df['case_id'] = master_df['file_id'].map(metadata_dict)
+
+        # Load the clinical data and gather the relavent data into mapping dictionaries.
+
+        case_submitter_dict = {}
+        age_dict = {}
+        gender_dict = {}
+        survival_days_dict = {}
+        vital_status_dict = {}
+        race_dict = {}
+        ethnicity_dict = {}
+
+
+        # Load the clinical file.
+        with open(clinical_tsv, "r") as clinical_handle:
+            clinical_data = csv.reader(clinical_handle, delimiter='\t')
+            # Skip the header.
+            next(clinical_data)
+
+            # Populate the mapping dictionaries with keys as case IDs and values as the clinical information.
+            for row in clinical_data:
+                if row[0] not in case_submitter_dict:
+                    case_submitter_dict[row[0]] = row[1]
+                if row[0] not in age_dict:
+                    age_dict[row[0]] = row[3]
+                if row[0] not in gender_dict:
+                    gender_dict[row[0]] = row[11]
+                if row[0] not in vital_status_dict:
+                    vital_status_dict[row[0]] = row[15]
+                if row[0] not in survival_days_dict:
+                    survival_days_dict[row[0]] = row[9]
+                if row[0] not in race_dict:
+                    race_dict[row[0]] = row[14]
+                if row[0] not in ethnicity_dict:
+                    ethnicity_dict[row[0]] = row[10]
+
+        # Map the clinical dictionaries to the master dataframe.
+        master_df['case_submitter_id'] = master_df['case_id'].map(case_submitter_dict)
+        master_df['age_at_index'] = master_df['case_id'].map(age_dict)
+        master_df['gender'] = master_df['case_id'].map(gender_dict)
+        master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        master_df['days_to_death'] = master_df['case_id'].map(survival_days_dict)
+        master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        master_df['race'] = master_df['case_id'].map(race_dict)
+        master_df['ethnicity'] = master_df['case_id'].map(ethnicity_dict)
+
+        print(master_df.head())
+        print(master_df.tail())
+
+
+
 
 
 
