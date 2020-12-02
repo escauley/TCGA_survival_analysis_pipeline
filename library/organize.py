@@ -67,50 +67,60 @@ class organize:
 
         return master_df
 
-    def map_to_masterlist(self, mapping_file_list, data):
+    def map_ensg_to_genesymbol(self, mapping_file, master_df):
 
         # Arguments
         # ---------
 
-        # data: a data frame of the data to be processed.
+        # master_df: a data frame of the data to be processed.
 
-        # master_list_location: the path to the masterlist to use for mapping.
+        # mapping_file: the path to the file to use to map ENSG ID to Gene Symbol
 
         # Returns
         # -------
 
-        # A pandas dataframe of the data with a mapped column
-        # A list of the IDs that were not mapped.
+        # A pandas dataframe with a column of ENSG transcript IDs mapped to a separate column with gene symbols
 
         # For iterating over pandas dataframes: https://www.geeksforgeeks.org/iterating-over-rows-and-columns-in-pandas-dataframe/
 
-        for mapping_file in mapping_file_list:
 
-            # Load the mapping file.
-            with open(mapping_file, "r") as map_file_handle:
-                map_file_csv = csv.reader(map_file_handle, delimiter='\t')
-                # Skip the header.
-                next(map_file_csv)
+        # Load the mapping file.
+        with open(mapping_file, "r") as map_file_handle:
+            map_file_csv = csv.reader(map_file_handle, delimiter='\t')
+            # Skip the header.
+            next(map_file_csv)
 
-                # Set up the mapping file dictionary.
-                mapping_dict = {}
+            # Set up the mapping file dictionary.
+            mapping_dict = {}
 
-                # Populate the mapping dictionary with keys as ensg IDs and values as the gene symbol.
-                for row in map_file_csv:
-                    mapping_dict[row[1]] = row[0]
-                    #if row[1] in mapping_dict:
-                        # Already there, additional term to add.
-                        #mapping_dict[row[1]].append(row[0])
-                    #else:
-                        # Not present in dict yet so create it.
-                        #mapping_dict[row[1]] = []
-                        #mapping_dict[row[1]].append(row[0])
+            # Populate the mapping dictionary with keys as ensg IDs and values as the gene symbol.
+            for row in map_file_csv:
+                mapping_dict[row[1]] = row[0]
 
-        # Map the unmapped data frame using the mapping dictionary.
-        # Source: https://kanoki.org/2019/04/06/pandas-map-dictionary-values-with-dataframe-columns/
-        data['gene_symbol'] = data['ensg_id'].map(mapping_dict)
+        # Split the ENSG symbol column into a column for ENSG ID and ENSG Transcript
+        master_df[['ensg_id', 'ensg_transcript_num']] = master_df.ensg_transcript.str.split('.', expand=True)
 
-        return data
+        # Map the ENSG Id column to the gene symbols in the mapping dict.
+        master_df['gene_symbol'] = master_df['ensg_id'].map(mapping_dict)
+
+        return master_df
+
+    def convert_FPKM_to_TPM(self, master_df):
+
+        # Arguments
+        # ---------
+
+        # master_df: a pandas data frame with a column for FPKM
+
+        # Returns
+        # -------
+
+        # A pandas dataframe with an additional column of TPM, converted from the FPKM column
+
+        # Create a new column for TPM that is a conversion of the FPKM column.
+        master_df['TPM'] = master_df['FPKM']
+
+        # Needs to be updated with proper calculation
 
     def transpose(self, untransposed_data):
 
@@ -373,8 +383,7 @@ class organize:
         master_df['race'] = master_df['case_id'].map(race_dict)
         master_df['ethnicity'] = master_df['case_id'].map(ethnicity_dict)
 
-        print(master_df.head())
-        print(master_df.tail())
+        return master_df
 
 
 
