@@ -17,14 +17,14 @@ Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to down
 ### To Run
 Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the samples you wish to download to the cart. 
 
-#### Example: 
-Click the Advanced Search Tab and enter
+To add sampels to the cart:
+- Click the Advanced Search Tab and enter:
 
 files.analysis.workflow_type in ["FPKM"]  and files.data_type in ["Gene Expression Quantification"] and cases.samples.sample_type in ["Primary Tumor"] and cases.project.program.name in ["TCGA"] and cases.project.study.name in ["PRAD"]
 
-Download the sample sheet, the manifest, and the clinical data (as a csv file) from the cart. 
+Download the sample sheet, the manifest, and the clinical data (as a csv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
-Open get_data_all_samples.sh andinput the full path to the sample sheet downloaded from the GDC data portal (the second argument called to the python script).
+Open get_data_all_samples.sh and input the full path to the sample sheet downloaded from the GDC data portal (the second argument called to the python script).
 
 Run the shell script get_data_all_samples.sh
 
