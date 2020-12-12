@@ -6,15 +6,21 @@ A series of shell and python scripts with options that can be called from the co
 
 ## Pipeline steps
 
+
 ### Download
 
-Top level script: get_data_all_samples.sh
+#### Top level script
+get_data_all_samples.sh
 
-Library Script: get_data_all_samples.py
+No command line options
 
-Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to download normalized read count data from TCGA studies depending on the sample sheet provided. This will be updated to take command line arguments in the future updates.
+#### Library Script 
+get_data_all_samples.py
 
-### To Run
+#### Summary
+Adapted from the Bioxpress pipeline Downloader step. Hard coded to download normalized read count data from TCGA studies depending on the sample sheet provided. This will be updated to take command line arguments in the future updates.
+
+#### To Run
 Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the samples you wish to download to the cart. 
 
 To add samples to the cart:
@@ -22,18 +28,19 @@ To add samples to the cart:
 
 files.analysis.workflow_type in ["FPKM"]  and files.data_type in ["Gene Expression Quantification"] and cases.samples.sample_type in ["Primary Tumor"] and cases.project.program.name in ["TCGA"] and cases.project.study.name in ["PRAD"]
 
-Download the sample sheet, the manifest, and the clinical data (as a csv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
+Download the sample sheet, the manifest, the metadata file, and the clinical data (as a tsv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
 Open get_data_all_samples.sh and input the full path to the sample sheet downloaded from the GDC data portal (the second argument called to the python script).
 
 Run the shell script get_data_all_samples.sh
+
 
 ### Uncompress files
 
 #### Top level script: 
 unpack_data.py
 
-#### Options
+Command Line Options
 -h or --help 
   - Display the options on the command line. 
   
@@ -52,5 +59,61 @@ organize.py
 python3 unpack_data.py -l logs/get_data_all_samples.log -d TCGA_data/normalized_read_counts/
 
 
+### Map to metadata, gene symbols, and clinical data
 
+#### Top level script: 
+combine.py
+
+Command Line Options
+-h or --help 
+  - Display the options on the command line. 
+  
+-i or --input folder
+  - The full path to the top level folder containing all data in the study being processed
+  
+-o or --out_file_name
+  - The full path and name of the out file containing all read count/expression data
+  
+#### Library Script: 
+organize.py
+- Uses the function combine_tcga_readcounts and write_out
+
+#### Example command line usage: 
+
+python3 combine.py -i /TCGA-PRAD/Primary-Tumor/ -o TCGA_PRAD/all_samples_combined.csv
+
+
+### Combine files
+
+#### Top level script: 
+map_to_metadata.py
+
+Note: This step is used to map the sample id contained in expression files to the patient id found in the metadata file, then use the patient id from the metadata file to map clinical data in the clinical data file
+
+Command Line Options
+-h or --help 
+  - Display the options on the command line. 
+  
+-i or --master_csv_input
+  - The full path to the file containing all samples merged together (the table output from the previous Combine step)
+  
+-m or --metadata_file
+  - The full path to the metadata file downloaded from the GDC data portal
+  
+-c or --clinical_tsv_output
+  - the full path to the clinical tsv file downloaded from the GDC data portal
+  
+-g or --gene_symbol_mapping
+  - The full path to the mapping file with ensg IDs and corresponding gene symbols, found in the mapping folder in the github repository
+  
+-o or --output_path
+  - The full path and file name for the output file with all rows mapped 
+  
+#### Library Script: 
+organize.py
+- Uses the functions map_tcga_clinical_data, map_ensg_to_genesymbol, and write_out
+
+#### Example command line usage: 
+
+python3 map_to_metadata.py -i TCGA_PRAD/all_samples_combined.csv -m TCGA-PRAD/metadata.cart.2020-11-25.json -c TCGA-PRAD/clinical.tsv -g mapping/ensgID_GeneSymbol_mapping.txt -o TCGA-PRAD/TCGA-PRAD_FPKM_Survival.csv
 
