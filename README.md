@@ -17,7 +17,7 @@ Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to down
 ### To Run
 Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the samples you wish to download to the cart. 
 
-To add sampels to the cart:
+To add samples to the cart:
 - Click the Advanced Search Tab and enter:
 
 files.analysis.workflow_type in ["FPKM"]  and files.data_type in ["Gene Expression Quantification"] and cases.samples.sample_type in ["Primary Tumor"] and cases.project.program.name in ["TCGA"] and cases.project.study.name in ["PRAD"]
