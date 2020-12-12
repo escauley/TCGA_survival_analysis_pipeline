@@ -12,8 +12,21 @@ Top level script: get_data_all_samples.sh
 
 Library Script: get_data_all_samples.py
 
-Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to download normalized read count data from TCGA studies depending on the sample sheet provided. 
+Summary: Adapted from the Bioxpress pipeline Downloader step. Hard coded to download normalized read count data from TCGA studies depending on the sample sheet provided. This will be updated to take command line arguments in the future updates.
 
+### To Run
+Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the samples you wish to download to the cart. 
+
+#### Example: 
+Click the Advanced Search Tab and enter
+
+files.analysis.workflow_type in ["FPKM"]  and files.data_type in ["Gene Expression Quantification"] and cases.samples.sample_type in ["Primary Tumor"] and cases.project.program.name in ["TCGA"] and cases.project.study.name in ["PRAD"]
+
+Download the sample sheet, the manifest, and the clinical data (as a csv file) from the cart. 
+
+Open get_data_all_samples.sh andinput the full path to the sample sheet downloaded from the GDC data portal (the second argument called to the python script).
+
+Run the shell script get_data_all_samples.sh
 
 ### Uncompress files
 
