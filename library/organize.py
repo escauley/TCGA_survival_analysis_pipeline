@@ -4,18 +4,7 @@ import csv
 import json
 
 # For exiting the program.
-import sys
 import os
-
-# For the input file Regex.
-import re
-
-# For loading reading and loading files.
-from . import FileUtils
-
-
-
-
 
 class organize:
 
@@ -121,22 +110,6 @@ class organize:
         master_df['TPM'] = master_df['FPKM']
 
         # Needs to be updated with proper calculation
-
-    def transpose(self, untransposed_data):
-
-        # Arguments
-        # ---------
-
-        # untransposed_data: a data frame of the data to be processed.
-
-        # Returns
-        # -------
-
-        # A transposed dataframe with rows switched for columns.
-
-        transposed_data = pd.transpose(data = untransposed_data)
-
-        return transposed_data
 
     def write_out(self, final_dataframe, final_output_path):
 
