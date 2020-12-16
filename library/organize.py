@@ -56,7 +56,7 @@ class organize:
 
         return master_df
 
-    def map_ensg_to_genesymbol(self, mapping_file, master_df):
+    def map_ensg_to_genesymbol(self, ensg_mapping_file, uniprot_mapping_file, master_df):
 
         # Arguments
         # ---------
@@ -73,24 +73,42 @@ class organize:
         # For iterating over pandas dataframes: https://www.geeksforgeeks.org/iterating-over-rows-and-columns-in-pandas-dataframe/
 
 
-        # Load the mapping file.
-        with open(mapping_file, "r") as map_file_handle:
-            map_file_csv = csv.reader(map_file_handle, delimiter='\t')
+        # Load the ensg id mapping file.
+        with open(ensg_mapping_file, "r") as ensg_file_handle:
+            ensg_file_csv = csv.reader(ensg_file_handle, delimiter='\t')
             # Skip the header.
-            next(map_file_csv)
+            next(ensg_file_csv)
 
             # Set up the mapping file dictionary.
-            mapping_dict = {}
+            ensg_mapping_dict = {}
 
             # Populate the mapping dictionary with keys as ensg IDs and values as the gene symbol.
-            for row in map_file_csv:
-                mapping_dict[row[1]] = row[0]
+            for row in ensg_file_csv:
+                ensg_mapping_dict[row[1]] = row[0]
+
+        # Load the uniprot mapping file.
+        with open(uniprot_mapping_file, "r") as uniprot_file_handle:
+            uniprot_file_csv = csv.reader(uniprot_file_handle, quoting=csv.QUOTE_ALL)
+            # Skip the header.
+            next(uniprot_file_csv)
+
+            # Set up the mapping file dictionary.
+            uniprot_mapping_dict = {}
+
+            # Populate the mapping dictionary with keys as ensg IDs and values as the gene symbol.
+            for row in uniprot_file_csv:
+                uniprot_mapping_dict[row[0]] = row[1]
 
         # Split the ENSG symbol column into a column for ENSG ID and ENSG Transcript
         master_df[['ensg_id', 'ensg_transcript_num']] = master_df.ensg_transcript.str.split('.', expand=True)
 
-        # Map the ENSG Id column to the gene symbols in the mapping dict.
-        master_df['gene_symbol'] = master_df['ensg_id'].map(mapping_dict)
+        # Map the ENSG Id column to the gene symbols in the first mapping dict.
+        master_df['gene_symbol'] = master_df['ensg_id'].map(ensg_mapping_dict)
+
+        # Map the gene symbol column to the uniprot accession column in the second mapping dict.
+        master_df['uniprotkb_ac'] = master_df['gene_symbol'].map(uniprot_mapping_dict)
+
+        print(master_df.head())
 
         return master_df
 
@@ -318,6 +336,7 @@ class organize:
         gender_dict = {}
         survival_days_dict = {}
         vital_status_dict = {}
+        days_to_last_follow_up_dict = {}
         race_dict = {}
         ethnicity_dict = {}
 
@@ -340,6 +359,8 @@ class organize:
                     vital_status_dict[row[0]] = row[15]
                 if row[0] not in survival_days_dict:
                     survival_days_dict[row[0]] = row[9]
+                if row[0] not in days_to_last_follow_up_dict:
+                    days_to_last_follow_up_dict[row[0]] = row[47]
                 if row[0] not in race_dict:
                     race_dict[row[0]] = row[14]
                 if row[0] not in ethnicity_dict:
@@ -353,6 +374,7 @@ class organize:
         master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
         master_df['days_to_death'] = master_df['case_id'].map(survival_days_dict)
         master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        master_df['days_to_last_follow_up'] = master_df['case_id'].map(days_to_last_follow_up_dict)
         master_df['race'] = master_df['case_id'].map(race_dict)
         master_df['ethnicity'] = master_df['case_id'].map(ethnicity_dict)
 

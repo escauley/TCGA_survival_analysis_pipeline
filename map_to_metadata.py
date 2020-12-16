@@ -15,13 +15,13 @@ def main(argv):
     # output_path = ''
 
     try:
-        opts, args = getopt.getopt(argv, 'h:i:m:c:g:o:', ['master_csv_input=', 'metadata_file=', 'clinical_tsv_input=', 'gene_symbol_mapping=', 'output_path='])
+        opts, args = getopt.getopt(argv, 'h:i:m:c:e:u:o:', ['master_csv_input=', 'metadata_file=', 'clinical_tsv_input=', 'ensg_mapping=', 'uniprot_mapping', 'output_path='])
     except getopt.GetoptError:
-        print('map_to_metadata.py --metadata_file [*ABSOLUTE PATH*]' '--clinical_tsv_input [*ABSOLUTE PATH*]' '--gene_symbol_mapping [*ABSOLUTE PATH*]' '--output_path [*ABSOLUTE PATH*]')
+        print('map_to_metadata.py --metadata_file [*ABSOLUTE PATH*]' '--clinical_tsv_input [*ABSOLUTE PATH*]' '--ensg_mapping [*ABSOLUTE PATH*]' '--uniprot_mapping [*ABSOLUTE PATH*]' '--output_path [*ABSOLUTE PATH*]')
         sys.exit(2)
     for opt, arg in opts:
         if opt in ('-h', '--help'):
-            print('map_to_metadata.py --metadata_file [*ABSOLUTE PATH*]' '--clinical_tsv_input [*ABSOLUTE PATH*]' '--gene_symbol_mapping [*ABSOLUTE PATH*]' '--output_path [*ABSOLUTE PATH*]')
+            print('map_to_metadata.py --metadata_file [*ABSOLUTE PATH*]' '--clinical_tsv_input [*ABSOLUTE PATH*]' '--ensg_symbol_mapping [*ABSOLUTE PATH*]' '--uniprot_mapping [*ABSOLUTE PATH*]' '--output_path [*ABSOLUTE PATH*]')
             sys.exit()
         elif opt in ('-i', '--master_csv_input'):
             master_csv_input = arg
@@ -29,8 +29,10 @@ def main(argv):
             metadata_file = arg
         elif opt in ('-c', '--clinical_tsv_input'):
             clinical_tsv_input = arg
-        elif opt in ('-g', '--gene_symbol_mapping'):
-            gene_symbol_mapping = arg
+        elif opt in ('-e', '--ensg_mapping'):
+            ensg_mapping = arg
+        elif opt in ('-u', '--uniprot_mapping'):
+            uniprot_mapping = arg
         elif opt in ('-o', '--output_path'):
             output_path = arg
 
@@ -39,7 +41,7 @@ def main(argv):
 
     master_df_with_clinical = org.map_tcga_clinical_data(master_csv=master_csv_input, metadata=metadata_file, clinical_tsv=clinical_tsv_input)
 
-    master_df_with_gene_symbol = org.map_ensg_to_genesymbol(mapping_file=gene_symbol_mapping, master_df=master_df_with_clinical)
+    master_df_with_gene_symbol = org.map_ensg_to_genesymbol(ensg_mapping_file=ensg_mapping, uniprot_mapping_file=uniprot_mapping, master_df=master_df_with_clinical)
 
     org.write_out(final_dataframe=master_df_with_gene_symbol, final_output_path=output_path)
 
@@ -51,5 +53,6 @@ if __name__ == '__main__':
 #   -i ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_all_samples_FPKM.csv
 #   -m ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/metadata.cart.2020-11-25.json
 #   -c ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/clinical_info/clinical.tsv
-#   -g ../../OncoMX/survival_dataset/normalized_read_counts/ensgID_GeneSymbol_mapping.txt
+#   -e ../../OncoMX/survival_dataset/normalized_read_counts/ensgID_GeneSymbol_mapping.txt
+#   -u ../../OncoMX/survival_dataset/normalized_read_counts/biomarker_masterlist.csv
 #   -o ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_TPM_Survival.csv
