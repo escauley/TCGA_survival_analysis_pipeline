@@ -13,49 +13,6 @@ class organize:
 
     # These methods are for taking the survival and expression datasets from TCGA and reorganizing their structure.
 
-    def load_concat_files(self, data_file_list):
-
-        # Arguments
-        # ---------
-
-        # data_file_list: a list of files to be joined together.
-
-        # Returns
-        # -------
-
-        # A pandas data frame of the joined files.
-
-        # Create a list to hold the pandas dataframes.
-        df_all = []
-
-        # Load each file and change column names
-        for current_file in data_file_list:
-
-            # Load the csv file into a pandas dataframe.
-            df = pd.read_csv(current_file)
-
-            # Rename the columns for the ENSG symbol, normal sample ID, and tumor sample ID.
-            df.rename(columns={df.columns[0]: 'ensg_symbol', df.columns[1]: 'normal', df.columns[2]: 'tumor'}, inplace=True)
-
-            # Take only the patient ID from the file name.
-            patient_id = str(current_file)[-25:-13]
-
-            print(patient_id)
-
-            # Add a column for each row containing the patient ID and a column for mapped gene symbol.
-            df['patient_id'] = patient_id
-
-            # Split the ensg_symbol column into the ensg_id (for mapping) and the transcript number.
-            df[['ensg_id', 'ensg_transcript_num']] = df.ensg_symbol.str.split('.', expand=True)
-
-            # Add to the dataframe list.
-            df_all.append(df)
-
-        # Join all dataframes to one master dataframe.
-        master_df = pd.concat(df_all, axis=0, ignore_index=True)
-
-        return master_df
-
     def map_ensg_to_genesymbol(self, ensg_mapping_file, uniprot_mapping_file, master_df):
 
         # Arguments
@@ -71,7 +28,6 @@ class organize:
         # A pandas dataframe with a column of ENSG transcript IDs mapped to a separate column with gene symbols
 
         # For iterating over pandas dataframes: https://www.geeksforgeeks.org/iterating-over-rows-and-columns-in-pandas-dataframe/
-
 
         # Load the ensg id mapping file.
         with open(ensg_mapping_file, "r") as ensg_file_handle:
@@ -102,32 +58,82 @@ class organize:
         # Split the ENSG symbol column into a column for ENSG ID and ENSG Transcript
         master_df[['ensg_id', 'ensg_transcript_num']] = master_df.ensg_transcript.str.split('.', expand=True)
 
+        print('Mapping to gene symbol')
         # Map the ENSG Id column to the gene symbols in the first mapping dict.
         master_df['gene_symbol'] = master_df['ensg_id'].map(ensg_mapping_dict)
 
+        print('Mapping to uniprot accession')
         # Map the gene symbol column to the uniprot accession column in the second mapping dict.
         master_df['uniprotkb_ac'] = master_df['gene_symbol'].map(uniprot_mapping_dict)
 
-        print(master_df.head())
+        print('Mapping complete')
 
         return master_df
 
-    def convert_FPKM_to_TPM(self, master_df):
+    def convert_fpkm_to_tpm(self, study_folder):
 
         # Arguments
         # ---------
 
-        # master_df: a pandas data frame with a column for FPKM
+        # study_folder: the folder containing samples to be processed
 
         # Returns
         # -------
 
         # A pandas dataframe with an additional column of TPM, converted from the FPKM column
 
-        # Create a new column for TPM that is a conversion of the FPKM column.
-        master_df['TPM'] = master_df['FPKM']
+        # Set up the path to the project directory.
+        condition_directory = study_folder + 'Primary-Tumor/'
 
-        # Needs to be updated with proper calculation
+        # Go to directory of each project.
+        os.chdir(condition_directory)
+
+        # Set up a dictionary where keys are file ids and values are file names.
+        file_id_dict = {}
+
+        # Make a dictionary where keys are the file_id and values are the file names.
+        with open('MANIFEST.txt', 'r') as manifest:
+
+            # Skip the header.
+            next(manifest)
+
+            for row in manifest:
+                split_row = row.split()
+
+                # Save the file_id (first column)
+                file_id = split_row[0]
+
+                # Save the file name (second column)
+                filename = split_row[1]
+                if filename.endswith('.gz'):
+                    filename = filename[:-3]
+
+                # Story the file id and file name into the dictionary.
+                file_id_dict[file_id] = filename
+
+        # Define the columns to create in each sample dataframe.
+        column_names = ['ensg_transcript', 'FPKM']
+
+        # Go into each sample directory and calculate TPM for each gene.
+        for folder, file in file_id_dict.items():
+            print('processing sample: ' + folder)
+
+            # Set up the path to the sample directory.
+            sample_file = condition_directory + file
+
+            # Load the sample file into a pandas dataframe.
+            sample_df = pd.read_csv(file, sep='\t', names=column_names)
+
+            # Sum the total FPKM for the sample.
+            fpkm_sum = sample_df['FPKM'].sum()
+
+            # Create a column for TPM and perform the calculation per row.
+            sample_df['TPM'] = (sample_df['FPKM']/fpkm_sum)*1000000
+
+            # Write the sample dataframe to the same sample directory.
+            sample_df.to_csv(file, index=False)
+
+            print(folder + ' complete')
 
     def write_out(self, final_dataframe, final_output_path):
 
@@ -142,21 +148,9 @@ class organize:
 
         # A csv file from the pandas dataframe.
 
+        print('Writing dataframe to ' + final_output_path)
+
         final_dataframe.to_csv(final_output_path, index=False)
-
-    def quote_csv(self, data_to_quote, output_name):
-
-        # Arguments
-        # ---------
-
-        # data_to_quote: the data frame to be written out.
-
-        # Returns
-        # -------
-
-        # A csv file with all values in double quotes.
-
-        data_to_quote.to_csv('data/COAD/processed/COAD.csv', index=False)
 
     def uncompress_tcga_hits(self, log_file, data_folder):
 
@@ -237,8 +231,6 @@ class organize:
                 # Uncompress the data.
                 os.system('gunzip -k *.gz')
 
-                print('sample complete')
-
     def combine_tcga_readcounts(self, uncombined_input_folder):
 
         # Arguments
@@ -252,13 +244,13 @@ class organize:
         # A pandas dataframe with all of the read count files combined and fields to denote file id and submitter id.
 
         # Designate the location of the files to be combined.
-        os.chdir(uncombined_input_folder)
+        os.chdir(uncombined_input_folder + 'Primary-Tumor/')
 
         # Set up a dictionary where keys are file ids and values are file names.
         file_id_dict = {}
 
         # Define the headers for the read count files and final master file.
-        column_names = ['ensg_transcript', 'FPKM', 'file_id', 'file_name']
+        column_names = ['ensg_transcript', 'FPKM', 'TPM', 'file_id', 'file_name']
 
         # Set up the master dataframe with header.
         master_df = pd.DataFrame(columns=column_names)
@@ -276,6 +268,8 @@ class organize:
 
                 # Save the file name (second column)
                 filename = split_row[1]
+                if filename.endswith('.gz'):
+                    filename = filename[:-3]
 
                 # Story the file id and file name into the dictionary.
                 file_id_dict[file_id] = filename
@@ -285,11 +279,13 @@ class organize:
         for key, value in file_id_dict.items():
 
             # Load the read count file into a dataframe.
-            df = pd.read_csv(value, sep='\t', names=column_names)
+            df = pd.read_csv(value)
 
             # For all rows, make a constant value with the current file id and file name.
             df['file_id'] = key
             df['file_name'] = value
+
+            print('Appending ' + value + ' to master df')
 
             # Add the read count dataframe to the master dataframe.
             master_df = master_df.append(df)
@@ -323,11 +319,15 @@ class organize:
             for patient in metadata_json:
                 metadata_dict[patient['file_id']] = patient['associated_entities'][0]['case_id']
 
+        print('Mapping to metadata file')
+
         # Make a new column in the master df for the case id.
         # master_df.insert(3, 'case_id', [], True)
 
         # Map the metadata dictionary to the master dataframe.
         master_df['case_id'] = master_df['file_id'].map(metadata_dict)
+
+        print('Metadata mapped')
 
         # Load the clinical data and gather the relavent data into mapping dictionaries.
 
@@ -340,6 +340,7 @@ class organize:
         race_dict = {}
         ethnicity_dict = {}
 
+        print('Mapping to clinical data')
 
         # Load the clinical file.
         with open(clinical_tsv, "r") as clinical_handle:
@@ -367,15 +368,21 @@ class organize:
                     ethnicity_dict[row[0]] = row[10]
 
         # Map the clinical dictionaries to the master dataframe.
+        print('Mapping case_submitter_id')
         master_df['case_submitter_id'] = master_df['case_id'].map(case_submitter_dict)
+        print('Mapping age_at_index')
         master_df['age_at_index'] = master_df['case_id'].map(age_dict)
+        print('Mapping gender')
         master_df['gender'] = master_df['case_id'].map(gender_dict)
+        print('Mapping vital_status')
         master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
-        master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        print('Mapping days_to_death')
         master_df['days_to_death'] = master_df['case_id'].map(survival_days_dict)
-        master_df['vital_status'] = master_df['case_id'].map(vital_status_dict)
+        print('Mapping days_to_last_follow_up')
         master_df['days_to_last_follow_up'] = master_df['case_id'].map(days_to_last_follow_up_dict)
+        print('Mapping race')
         master_df['race'] = master_df['case_id'].map(race_dict)
+        print('Mapping ethnicity')
         master_df['ethnicity'] = master_df['case_id'].map(ethnicity_dict)
 
         return master_df

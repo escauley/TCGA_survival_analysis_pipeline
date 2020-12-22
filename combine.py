@@ -29,12 +29,17 @@ def main(argv):
     # Instantiate organize.py
     org = organize.organize()
 
+    # Create a new column for TPM.
+    # org.convert_fpkm_to_tpm(study_folder=input_folder)
+
+    # Combine all read count files in a dataframe.
     combined_dataframe = org.combine_tcga_readcounts(uncombined_input_folder=input_folder)
 
+    # Write combined dataframe to a master csv file.
     org.write_out(final_dataframe=combined_dataframe, final_output_path=out_file_name)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
 
 # Example command line call:
-# python3 combine_read_counts.py -i /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/Primary-Tumor -o /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_all_samples_FPKM.csv
+# python3 combine.py -i /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/ -o /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_all_samples_TPM.csv
