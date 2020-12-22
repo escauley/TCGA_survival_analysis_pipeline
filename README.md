@@ -26,7 +26,7 @@ Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the sampl
 To add samples to the cart:
 - Click the Advanced Search Tab and enter:
 
-files.analysis.workflow_type in ["FPKM"]  and files.data_type in ["Gene Expression Quantification"] and cases.samples.sample_type in ["Primary Tumor"] and cases.project.program.name in ["TCGA"] and cases.project.study.name in ["PRAD"]
+cases.project.program.name in ["TCGA"] and cases.project.project_id in ["TCGA-BLCA"] and files.analysis.workflow_type in ["HTSeq - FPKM"] and files.data_type in ["Gene Expression Quantification"] and files.experimental_strategy in ["RNA-Seq"]
 
 Download the sample sheet, the manifest, the metadata file, and the clinical data (as a tsv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
@@ -59,7 +59,14 @@ organize.py
 python3 unpack_data.py -l logs/get_data_all_samples.log -d TCGA_data/normalized_read_counts/
 
 
-### Map to metadata, gene symbols, and clinical data
+### Combine files
+
+#### Note: 
+In this step, FPKM values are also converted to TPM values for each sample using the formula:
+
+TPM = (FPKM gene / Sum of FPKMs for all genes in the sample) * 1,000,000
+
+TPM values are added to the original, uncompressed sample files before combining all samples into the master file. 
 
 #### Top level script: 
 combine.py
@@ -76,14 +83,14 @@ Command Line Options
   
 #### Library Script: 
 organize.py
-- Uses the function combine_tcga_readcounts and write_out
+- Uses the function convert fpkm_to_tpm, combine_tcga_readcounts, and write_out
 
 #### Example command line usage: 
 
 python3 combine.py -i /TCGA-PRAD/Primary-Tumor/ -o TCGA_PRAD/all_samples_combined.csv
 
 
-### Combine files
+### Map to metadata, gene symbols, and clinical data
 
 #### Top level script: 
 map_to_metadata.py
