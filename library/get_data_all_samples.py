@@ -53,7 +53,7 @@ files_endpt = "https://api.gdc.cancer.gov/files"
 data_endpt = "https://api.gdc.cancer.gov/data"
 
 # Set the path to the download destination.
-path0 = "/mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/"
+path0 = "/mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/TCGA-BLCA/"
 
 # Set up the collector dictionary where the structure is project_id : sample_type : file_id.
 for proj_id in collector:

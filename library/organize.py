@@ -196,6 +196,8 @@ class organize:
             # Go to directory of each project.
             os.chdir(project_directory)
 
+            # os.system('tar -zxvf results.tar.gz')
+
             # Make a list of sample ids from the manifest.
             with open('MANIFEST.txt', 'r') as manifest:
                 # Create a list to hold the sample ids.
@@ -292,7 +294,7 @@ class organize:
 
         return master_df
 
-    def map_tcga_clinical_data(self, metadata, master_csv, clinical_tsv):
+    def map_tcga_clinical_data(self, metadata, master_csv, clinical_folder):
 
         # Arguments
         # ---------
@@ -342,8 +344,13 @@ class organize:
 
         print('Mapping to clinical data')
 
+        os.chdir(clinical_folder)
+
+        # Uncompress clinical data file
+        os.system('tar -xvzf *.tar.gz')
+
         # Load the clinical file.
-        with open(clinical_tsv, "r") as clinical_handle:
+        with open('clinical.tsv', "r") as clinical_handle:
             clinical_data = csv.reader(clinical_handle, delimiter='\t')
             # Skip the header.
             next(clinical_data)
@@ -384,6 +391,8 @@ class organize:
         master_df['race'] = master_df['case_id'].map(race_dict)
         print('Mapping ethnicity')
         master_df['ethnicity'] = master_df['case_id'].map(ethnicity_dict)
+
+        os.chdir('/mnt/c/Users/caule/PycharmProjects/survival_data')
 
         return master_df
 
