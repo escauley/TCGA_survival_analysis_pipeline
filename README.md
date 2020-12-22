@@ -59,7 +59,14 @@ organize.py
 python3 unpack_data.py -l logs/get_data_all_samples.log -d TCGA_data/normalized_read_counts/
 
 
-### Map to metadata, gene symbols, and clinical data
+### Combine files
+
+#### Note: 
+In this step, FPKM values are also converted to TPM values for each sample using the formula:
+
+TPM = (FPKM gene / Sum of FPKMs for all genes in the sample) * 1,000,000
+
+TPM values are added to the original, uncompressed sample files before combining all samples into the master file. 
 
 #### Top level script: 
 combine.py
@@ -76,14 +83,14 @@ Command Line Options
   
 #### Library Script: 
 organize.py
-- Uses the function combine_tcga_readcounts and write_out
+- Uses the function convert fpkm_to_tpm, combine_tcga_readcounts, and write_out
 
 #### Example command line usage: 
 
 python3 combine.py -i /TCGA-PRAD/Primary-Tumor/ -o TCGA_PRAD/all_samples_combined.csv
 
 
-### Combine files
+### Map to metadata, gene symbols, and clinical data
 
 #### Top level script: 
 map_to_metadata.py
