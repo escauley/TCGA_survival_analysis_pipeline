@@ -26,7 +26,7 @@ Go to the GDC data portal (https://portal.gdc.cancer.gov/) and add all the sampl
 To add samples to the cart:
 - Click the Advanced Search Tab and enter:
 
-cases.project.program.name in ["TCGA"] and cases.project.project_id in ["TCGA-BLCA"] and files.analysis.workflow_type in ["HTSeq - FPKM"] and files.data_type in ["Gene Expression Quantification"] and files.experimental_strategy in ["RNA-Seq"]
+cases.project.program.name in ["TCGA"] and cases.project.project_id in ["TCGA-BLCA"] and files.analysis.workflow_type in ["HTSeq - FPKM"] and files.data_type in ["Gene Expression Quantification"] and files.experimental_strategy in ["RNA-Seq"] and cases.samples.sample_type in ["Primary Tumor"]
 
 Download the sample sheet, the manifest, the metadata file, and the clinical data (as a tsv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
