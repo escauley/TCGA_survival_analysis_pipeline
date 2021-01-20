@@ -36,4 +36,4 @@ if __name__ == '__main__':
     main(sys.argv[1:])
 
 # Example command line call:
-# python3 unpack_data.py -l /mnt/c/Users/caule/PycharmProjects/survival_data/logs/get_data_all_samples_BLCA.log -d /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/
+# python3 unpack_data.py -l /mnt/c/Users/caule/PycharmProjects/survival_data/logs/get_data_all_samples_BRCA.log -d /mnt/c/Users/caule/OncoMX/survival_dataset/normalized_read_counts/

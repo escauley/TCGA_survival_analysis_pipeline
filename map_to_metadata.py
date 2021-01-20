@@ -50,9 +50,9 @@ if __name__ == '__main__':
 
 # Example command line call:
 # python3 map_to_metadata.py
-#   -i ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_all_samples_TPM.csv
-#   -m ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/metadata.cart.2020-11-25.json
-#   -c ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/clinical_info/
+#   -i ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-ESCA/TCGA-ESCA_all_samples_TPM.csv
+#   -m ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-ESCA/metadata.cart.2021-01-12.json
+#   -c ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-ESCA/clinical_info/
 #   -e ../../OncoMX/survival_dataset/normalized_read_counts/ensgID_GeneSymbol_mapping.txt
 #   -u ../../OncoMX/survival_dataset/normalized_read_counts/biomarker_masterlist.csv
-#   -o ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-PRAD/TCGA-PRAD_TPM_Survival.csv
+#   -o ../../OncoMX/survival_dataset/normalized_read_counts/TCGA-ESCA/TCGA-ESCA_TPM_Survival.csv

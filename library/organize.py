@@ -196,7 +196,7 @@ class organize:
             # Go to directory of each project.
             os.chdir(project_directory)
 
-            # os.system('tar -zxvf results.tar.gz')
+            os.system('tar -zxvf results.tar.gz')
 
             # Make a list of sample ids from the manifest.
             with open('MANIFEST.txt', 'r') as manifest:
@@ -246,7 +246,7 @@ class organize:
         # A pandas dataframe with all of the read count files combined and fields to denote file id and submitter id.
 
         # Designate the location of the files to be combined.
-        os.chdir(uncombined_input_folder + 'Primary-Tumor/')
+        os.chdir(uncombined_input_folder + 'Primary-Tumor2/')
 
         # Set up a dictionary where keys are file ids and values are file names.
         file_id_dict = {}
@@ -276,9 +276,16 @@ class organize:
                 # Story the file id and file name into the dictionary.
                 file_id_dict[file_id] = filename
 
+        print("finished making file id dictionary")
 
-        # Use the file id dictionary to edit and concatenate all read count files.
+        # Use the file ID dictionary to edit and concatenate all read count files.
         for key, value in file_id_dict.items():
+
+            # Check if the directory exists for that file ID.
+            print('Checking for directory ' + key)
+            if not os.path.isdir(key):
+                # If it does not exist, move to the next file ID.
+                continue
 
             # Load the read count file into a dataframe.
             df = pd.read_csv(value)
