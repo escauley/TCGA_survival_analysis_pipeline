@@ -150,7 +150,7 @@ class organize:
 
         print('Writing dataframe to ' + final_output_path)
 
-        final_dataframe.to_csv(final_output_path, index=False)
+        final_dataframe.to_csv(final_output_path, index=True)
 
     def uncompress_tcga_hits(self, log_file, data_folder):
 
@@ -402,6 +402,111 @@ class organize:
         os.chdir('/mnt/c/Users/caule/PycharmProjects/survival_data')
 
         return master_df
+
+    def generate_TPM_table(self, gene_list, cancer_list, data_folder):
+
+        # Arguments
+        # ---------
+
+        # gene_list: a txt file of all of the genes to be included in the table
+        # master_csv: a txt file of all of the TCGA cancer studies to be included in the table
+
+        # Returns
+        # -------
+
+        # A pandas dataframe where rows are patient IDs, columns are genes, and values are TPM expression
+
+        # Create lists for genes and cancers
+        glist = []
+        clist = []
+
+        # Define the columns names for the master df.
+        column_names = ['gene_symbol', 'TPM', 'tcga_patient_id', 'tcga_study']
+
+        # Create the master pandas dataframe
+        master_df = pd.DataFrame(columns=column_names)
+
+
+        # Load the provided gene file into a list
+        with open(gene_list, 'r') as gene_list_file:
+            for row in gene_list_file:
+                row = row.strip('\n')
+                glist.append(row)
+
+
+        # Load the provided cancer file into a list
+        with open(cancer_list, 'r') as cancer_list_file:
+            for row in cancer_list_file:
+                row = row.strip('\n')
+                clist.append(row)
+
+        # Go through each cancer
+        for cancer in clist:
+            # Find the correct study folder and open the data file for that cancer
+            os.chdir(data_folder + 'TCGA-' + cancer)
+
+            # Define the cancer data file and open it as a Pandas dataframe.
+            # Specified dtypes for each column to speed up reading large csv:
+            # https://stackoverflow.com/questions/24251219/pandas-read-csv-low-memory-and-dtype-options
+            cancer_data_file = 'human_cancer_TCGA_expression_survival_' + cancer + '.csv'
+            cancer_data_df_full = pd.read_csv(cancer_data_file, quoting=csv.QUOTE_ALL,
+                                              dtype={'uniprotkb_ac': 'string',
+                                                     'gene_symbol': 'string',
+                                                     'ensg_id': 'string',
+                                                     'TPM': float,
+                                                     'FPKM': float,
+                                                     'tcga_patient_id': 'string',
+                                                     'age': 'string',
+                                                     'race': 'string',
+                                                     'ethnicity': 'string'})
+            # Create a column for the TCGA study.
+            cancer_data_df_full['tcga_study'] = cancer
+
+            # Take only the columns we will need.
+            cancer_data_df_min = cancer_data_df_full[['gene_symbol', 'TPM', 'tcga_patient_id', 'tcga_study']]
+
+            # Extract rows from the cancer data drame for the gene list
+            cancer_data_df_filtered = cancer_data_df_min[cancer_data_df_min['gene_symbol'].isin(glist)]
+
+            # Add the filtered rows to the master data frame.
+            master_df = master_df.append(cancer_data_df_filtered, ignore_index=True)
+            print('Summary of master df after processing ' + cancer)
+            print(master_df.info())
+
+        # Pivot the master dataframe so that each row is a patient ID and each column is a gene, values are TPM
+        # Information about pivoting a table with Pandas:
+        # https://stackoverflow.com/questions/47152691/how-to-pivot-a-dataframe
+        print('Pivoting master dataframe')
+        master_df = master_df.pivot_table(values='TPM', index=['tcga_patient_id', 'tcga_study'], columns='gene_symbol', aggfunc='mean')
+
+
+        return master_df
+
+
+            # Go through each gene
+            #for gene in glist:
+
+                #print('processing ' + gene)
+
+
+
+                # Iterate through the cancer dataframe
+                #for index, row in cancer_data_df.iterrows():
+
+                    # Add rows with the given gene to the master dataframe
+                    #if row['gene_symbol'] == gene:
+                            #print(gene + ' found in ' + cancer + ' for ' + row['tcga_patient_id'])
+                            #master_df['tcga_patient_id'].append(row['tcga_patient_id'], ignore_index=True)
+                            #master_df[gene].append(row['TPM'], ignore_index=True)
+                            #master_df['tcga_study'].append(row['tcga_study'], ignore_index=True)
+
+
+                            #print(row['gene_symbol'] + ' for patient ' + row['tcga_patient_id'] + ' added to master df.')
+                            #print(x)
+
+
+
+
 
 
 
