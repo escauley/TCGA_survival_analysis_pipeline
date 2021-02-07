@@ -3,7 +3,6 @@ import sys
 import getopt
 
 from library import organize
-from library import FileUtils
 
 def main(argv):
 
@@ -11,6 +10,9 @@ def main(argv):
     # The parameters we're looking for:
     #log_file = ''
     #data_folder = ''
+
+    # To do: Change log file path so that it can take a TCGA study id instead.
+    #   Combine with download data step
 
     try:
         opts, args = getopt.getopt(argv, 'h:l:d:', ['in_directory=', 'log_file_path=', 'data_folder_path='])

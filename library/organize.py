@@ -2,18 +2,120 @@
 import pandas as pd
 import csv
 import json
+import sys
+import requests
 
 # For exiting the program.
 import os
 
 class organize:
+    """ This class contains a set of functions for re-organizing gene expression and clinical data downloaded from the GDC data
+    portal so that they can be used for downstream processing such as survival analysis.
 
-    # Class Description
-    # -----------------
+    
+    """
 
-    # These methods are for taking the survival and expression datasets from TCGA and reorganizing their structure.
+    def download_expression_data(self, sample_sheet, output_download):
+        """ This function downloads expression data from GDC data portal specified in a downloaded sample sheet.
+
+        First take a sample sheet downloaded from the GDC data portal with all samples to be downloaded.
+
+        :param sample_sheet: The path to a sample sheet downloaded from the cart at the GDC data portal.
+        :type sample_sheet: str
+        :param output_directory: A path to the directory to populate with downloaded expression data.
+        :type output_directory: str
+        """
+
+        # Set up a dictionary for collecting the informatiom form the sample sheet.
+        collector = {}
+
+        # Set up a counter for reading each row of the sample sheet file and skip the header.
+        rowcount = 0
+
+        # Open the sample sheet file.
+        with open(sample_sheet) as sample_csv:
+            csvreader = csv.reader(sample_csv, delimiter="\t", quotechar='"')
+            for row in csvreader:
+                rowcount += 1
+                if rowcount == 1:
+                    continue
+                else:
+                    # Save the file ID, project ID, and sample type.
+                    fil_id = row[0]
+                    proj_id = row[4]
+                    sam_type = row[7].replace(" ", "-")
+
+                    # Update collector dictionary
+                    # Do the project id and sample type exist in the dictionary? If not, create it.
+                    if not (proj_id in collector):
+                        collector[proj_id] = {}
+                    if not (sam_type in collector[proj_id]):
+                        collector[proj_id][sam_type] = []
+
+                    # Add the file Id to the collector dictionary.
+                    collector[proj_id][sam_type].append(fil_id)
+
+        # Download everything!
+        data_endpt = "https://api.gdc.cancer.gov/data"
+
+        # Set up the collector dictionary where the structure is project_id : sample_type : file_id.
+        for proj_id in collector:
+
+            # Create paths to establish destination folders.
+            path1 = os.path.join(output_download, proj_id)
+            if not (os.path.exists(path1)):
+                os.mkdir(path1)
+            for sam_type in collector[proj_id]:
+                path2 = os.path.join(path1, sam_type)
+                if not (os.path.exists(path2)):
+                    os.mkdir(path2)
+
+                # Make a list of all the files.
+                fil_list = collector[proj_id][sam_type]
+
+                # Create a file list of only unique names.
+                uniq_fil_list = list(set(fil_list))
+
+                params = {"ids": uniq_fil_list}
+
+                response = requests.post(data_endpt, data=json.dumps(params),
+                                         headers={"Content-Type": "application/json"})
+
+                file_name = path2 + "/results.tar.gz"
+
+                with open(file_name, "wb") as output_file:
+                    output_file.write(response.content)
+
+                os.mkdir(output_download + proj_id + '/' + 'logs/')
+
+                log_file = output_download + proj_id + '/' + 'logs/' + proj_id + '.log'
+                summary = str(proj_id + ',' + sam_type + ',' + str(len(fil_list)) + ',' + str(len(uniq_fil_list)))
+
+                with open(log_file, 'w') as log:
+                    log.write(summary)
+
 
     def map_ensg_to_genesymbol(self, ensg_mapping_file, uniprot_mapping_file, master_df):
+        """ This function will map ENSG transcripts to gene symbol and Uniprot accessions.
+
+        First the ENSG transcript is split into the base ENSG ID and transcript number,
+        then creates a new column for gene symbol and maps the ENSG base ID to gene symbols using a provided mapping
+        file. A column for Uniprot accession is then created and the gene symbol column is mapped using a provided
+        mapping file so that every ENSG ID now has a corresponding gene symbol and Uniprot accession.
+
+        :param ensg_mapping_file: The path to the file to map ENSG ID to Gene Symbol.
+        :type ensg_mapping_file: str
+        :param uniprot_mapping_file: The path to the file to map Uniprot accession to gene symbol
+        :type uniprot_mapping_file: str
+        :param master_df: A pandas dataframe with column for ensg_transcript
+        :type master_df: A pandas dataframe object
+        :return: A pandas dataframe with ENSG ID mapped
+        :rtype: A pandas dataframe obj
+
+        .. seealso:: For iterating over pandas dataframes:
+            https://www.geeksforgeeks.org/iterating-over-rows-and-columns-in-pandas-dataframe/
+
+        """
 
         # Arguments
         # ---------
@@ -171,7 +273,7 @@ class organize:
         with open(log_file, 'r') as fil:
             # Go through each study and save the study name and number of samples.
             for line in fil:
-                spl = line.split()
+                spl = line.split(sep=',')
 
                 # Check that the log has four fields.
                 if len(spl) != 4:
@@ -179,9 +281,6 @@ class organize:
 
                 # Save the project name.
                 proj_id = spl[0]
-
-                # Save the number of samples.
-                num_sam = int(spl[2])
 
                 # Add study and number of samples as key, value pairs to dictionary.
                 if not (proj_id in study_list):
@@ -481,67 +580,3 @@ class organize:
 
 
         return master_df
-
-
-            # Go through each gene
-            #for gene in glist:
-
-                #print('processing ' + gene)
-
-
-
-                # Iterate through the cancer dataframe
-                #for index, row in cancer_data_df.iterrows():
-
-                    # Add rows with the given gene to the master dataframe
-                    #if row['gene_symbol'] == gene:
-                            #print(gene + ' found in ' + cancer + ' for ' + row['tcga_patient_id'])
-                            #master_df['tcga_patient_id'].append(row['tcga_patient_id'], ignore_index=True)
-                            #master_df[gene].append(row['TPM'], ignore_index=True)
-                            #master_df['tcga_study'].append(row['tcga_study'], ignore_index=True)
-
-
-                            #print(row['gene_symbol'] + ' for patient ' + row['tcga_patient_id'] + ' added to master df.')
-                            #print(x)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
