@@ -117,20 +117,6 @@ class organize:
 
         """
 
-        # Arguments
-        # ---------
-
-        # master_df: a data frame of the data to be processed.
-
-        # mapping_file: the path to the file to use to map ENSG ID to Gene Symbol
-
-        # Returns
-        # -------
-
-        # A pandas dataframe with a column of ENSG transcript IDs mapped to a separate column with gene symbols
-
-        # For iterating over pandas dataframes: https://www.geeksforgeeks.org/iterating-over-rows-and-columns-in-pandas-dataframe/
-
         # Load the ensg id mapping file.
         with open(ensg_mapping_file, "r") as ensg_file_handle:
             ensg_file_csv = csv.reader(ensg_file_handle, delimiter='\t')
@@ -173,6 +159,14 @@ class organize:
         return master_df
 
     def convert_fpkm_to_tpm(self, study_folder):
+        '''
+
+        :param study_folder: the folder containing samples to be processed
+        :type study_folder: a path
+        :return: 
+        :rtype: a pandas dataframe
+        '''
+
 
         # Arguments
         # ---------
@@ -345,7 +339,7 @@ class organize:
         # A pandas dataframe with all of the read count files combined and fields to denote file id and submitter id.
 
         # Designate the location of the files to be combined.
-        os.chdir(uncombined_input_folder + 'Primary-Tumor2/')
+        os.chdir(uncombined_input_folder + 'Primary-Tumor/')
 
         # Set up a dictionary where keys are file ids and values are file names.
         file_id_dict = {}

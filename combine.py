@@ -30,7 +30,7 @@ def main(argv):
     org = organize.organize()
 
     # Create a new column for TPM.
-    #org.convert_fpkm_to_tpm(study_folder=input_folder)
+    org.convert_fpkm_to_tpm(study_folder=input_folder)
 
     # Combine all read count files in a dataframe.
     combined_dataframe = org.combine_tcga_readcounts(uncombined_input_folder=input_folder)
