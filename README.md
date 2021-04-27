@@ -36,6 +36,8 @@ cases.project.program.name in ["TCGA"] and cases.project.project_id in ["TCGA-BL
 Download the sample sheet, the manifest, the metadata file, and the clinical data (as a tsv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
 Run the download_data.py script
+Example usage:
+python download_data.py -d /data/
 
 ***Note***
 After the download completes, move the sample sheet, manifest, metadata file, and clinical data into the TCGA study folder (example: TCGA-BLCA).
@@ -65,6 +67,10 @@ organize.py
 
 python3 unpack_data.py -l logs/get_data_all_samples.log -d TCGA_data/normalized_read_counts/
 
+
+***Note***
+If the download step did not generate a file named "MANIFEST.txt" in the same folder as the zipped data, this step will encounter an error and not run. In this case, make a copy of the manifest file downloaded in the previous step and name this copy MANIFEST.txt, then move this file to the same folder as the zipped read count data.
+ - An example path for this file is /data/TCGA-BLCA/Primary-tumor/MANIFEST.tsxt
 
 ### Combine files
 
