@@ -12,7 +12,12 @@ A series of shell and python scripts with options that can be called from the co
 #### Top level script
 download_data.py
 
+Command Line Options
+-h or --help
+  - Display the options on the command line
 
+-d or --download_folder
+  - The main folder to download the read count data (a folder for the specific TCGA study will be generated in this folder)
 
 #### Library Script 
 organize.py
@@ -30,7 +35,12 @@ cases.project.program.name in ["TCGA"] and cases.project.project_id in ["TCGA-BL
 
 Download the sample sheet, the manifest, the metadata file, and the clinical data (as a tsv file) from the cart and onto your machine where you you will know the full path for referencing these files in later scripts. 
 
+Run the download_data.py script
 
+***Note***
+After the download completes, move the sample sheet, manifest, metadata file, and clinical data into the TCGA study folder (example: TCGA-BLCA).
+
+Make a folder called "clinical_info" and put the clinical data file withint the clinical info folder.
 
 ### Uncompress files
 
